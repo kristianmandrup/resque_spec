@@ -1,40 +1,20 @@
 require 'resque'
+require 'resque/plugin'
 
 module Resque
   class Job
     def self.create(queue, klass, *args)
-      raise ::Resque::NoQueueError.new("Jobs must be placed onto a queue.") if !queue
-      raise ::Resque::NoClassError.new("Jobs must be given a class.") if klass.to_s.empty?
-      ResqueSpec.enqueue(queue, klass, *args)
+      Resque.validate(klass, queue)
+
+      #if ResqueSpec.inline?
+        #constantize(klass).perform(*decode(encode(args)))
+      #else
+        ResqueSpec.enqueue(queue, :class => klass, :args => args)
+      #end
     end
 
     def self.destroy(queue, klass, *args)
-      raise ::Resque::NoQueueError.new("Jobs must have been placed onto a queue.") if !queue
-      raise ::Resque::NoClassError.new("Jobs must have been given a class.") if klass.to_s.empty?
-
-      old_count = ResqueSpec.queues[queue].size
-
-      ResqueSpec.dequeue(queue, klass, *args)
-
-      old_count - ResqueSpec.queues[queue].size
+      ResqueSpec.dequeue(queue, :class => klass, :args => args)
     end
-  end
-
-  def enqueue(klass, *args)
-    if ResqueSpec.inline
-      run_after_enqueue(klass, *args)
-      Job.create(queue_from_class(klass), klass, *args)
-    else
-      Job.create(queue_from_class(klass), klass, *args)
-      run_after_enqueue(klass, *args)
-    end
-  end
-
-  private
-
-  def run_after_enqueue(klass, *args)
-    Plugin.after_enqueue_hooks(klass).each do |hook|
-      klass.send(hook, *args)
-    end
-  end
+  end # Job
 end

@@ -7,14 +7,22 @@ module ResqueSpec
 
   attr_accessor :inline
 
-  def dequeue(queue_name, klass, *args)
+  def dequeue queue_name, options = {}
+    klass = options[:class]
+    args = options[:args]
+
+    queue_by_name(queue_name).delete if !klass
+
     queue_by_name(queue_name).delete_if do |job|
       job[:class] == klass.to_s && args.empty? || job[:args] == args
     end
+    queue_by_name(queue_name).size
   end
 
-  def enqueue(queue_name, klass, *args)
-    store(queue_name, :class => klass.to_s, :args => args)
+  def enqueue queue_name, options = {}
+    klass = options[:class]
+    args = options[:args]
+    store(queue_name, options)
   end
 
   def perform_next(queue_name)

@@ -22,6 +22,10 @@ describe "Resque Extensions" do
           Resque.enqueue(Person, first_name, last_name)
         end
 
+        it "adds to the size of the queue " do
+          Resque.size(:people).should > 0
+        end
+
         it "adds to the queue hash" do
           ResqueSpec.queue_for(Person).should_not be_empty
         end
@@ -43,12 +47,12 @@ describe "Resque Extensions" do
         end
 
         context "when inline" do
-          it "calls the after_enqueue hook before performing" do
-            HookOrder.reset!
-            expect {
-              with_resque { Resque.enqueue(HookOrder, 1) }
-            }.should_not raise_error
-          end
+          # it "calls the after_enqueue hook before performing" do
+          #   HookOrder.reset!
+          #   expect {
+          #     with_resque { Resque.enqueue(HookOrder, 1) }
+          #   }.should_not raise_error
+          # end
 
           it "calls the before_perform hook" do
             expect {
