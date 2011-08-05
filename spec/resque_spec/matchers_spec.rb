@@ -29,6 +29,7 @@ describe "ResqueSpec Matchers" do
         subject { Person }
 
         it { should have_queued(first_name, last_name) }
+        it { should have_queued(first_name, last_name.to_sym) }
         it { should_not have_queued(last_name, first_name) }
       end
 
@@ -57,6 +58,7 @@ describe "ResqueSpec Matchers" do
       context "with #in(queue_name)" do
         it { should have_queued(first_name, last_name).in(:people) }
         it { should_not have_queued(last_name, first_name).in(:people) }
+        it { should_not have_queued(last_name, first_name).in('people') }
       end
     end
   end
@@ -116,6 +118,7 @@ describe "ResqueSpec Matchers" do
 
     context "with #in(queue_name)" do
       it { should have_queue_size_of(1).in(:people) }
+      it { should have_queue_size_of(1).in('people') }
     end
   end
 
@@ -135,6 +138,7 @@ describe "ResqueSpec Matchers" do
 
     context "with #in(queue_name)" do
       it { should have_queue_size_of(1).in(:people) }
+      it { should have_queue_size_of(1).in('people') }
     end
   end
 

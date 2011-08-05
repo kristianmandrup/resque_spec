@@ -4,9 +4,9 @@ module InQueueHelper
   def self.extended(klass)
     klass.instance_eval do
       chain :in do |queue_name|
-        puts "self queue name:" << self.queue_name.inspect
-        puts "queue_name:" << queue_name.inspect
-        self.queue_name = queue_name
+        # puts "self queue name:" << self.queue_name.inspect
+        # puts "queue_name:" << queue_name.inspect
+        self.queue_name = queue_name.to_sym
       end
     end
   end
@@ -30,9 +30,20 @@ RSpec::Matchers.define :have_queued do |*expected_args|
 
   puts "expected args:" << expected_args.inspect
   match do |actual|
-    queue(actual).any? do |entry| 
-      puts "entry:" << entry.inspect
-      entry[:class].to_s == actual.to_s && entry[:args] == expected_args 
+    queue(actual).any? do |entry|
+      # puts "entry:" << entry.inspect
+      entry_args = map_args(*entry[:args])
+      exp_args = map_args(*expected_args)
+
+      # puts "args: #{entry_args.inspect} == #{exp_args.inspect}"
+
+      entry[:class].to_s == actual.to_s && entry_args == exp_args
+    end
+  end
+
+  def map_args *args
+    args.map do |arg|
+      arg.kind_of?(Symbol) ? arg.to_s : arg
     end
   end
 
