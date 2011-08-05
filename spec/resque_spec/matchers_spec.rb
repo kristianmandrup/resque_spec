@@ -101,12 +101,31 @@ describe "ResqueSpec Matchers" do
     end
   end
 
-  describe "#in" do
+  describe "#in (Job.create)" do
     before do
       Resque::Job.create(:people, "User", first_name, last_name)
     end
 
     subject { "User" }
+
+    context "without #in(queue_name)" do
+      it "should raise a Resque::NoQueueError" do
+        lambda { "User".should have_queue_size_of(1) }.should raise_error(Resque::NoQueueError)
+      end
+    end
+
+    context "with #in(queue_name)" do
+      it { should have_queue_size_of(1).in(:people) }
+    end
+  end
+
+  describe "#in (Resque.enqueu)" do
+    before do
+      ResqueSpec.reset!
+      Resque.enqueue(Person, first_name, last_name)
+    end
+
+    subject { Person }
 
     context "without #in(queue_name)" do
       it "should raise a Resque::NoQueueError" do
